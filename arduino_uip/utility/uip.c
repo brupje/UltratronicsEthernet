@@ -125,6 +125,7 @@ static const uip_ipaddr_t all_zeroes_addr =
 
 
 #if UIP_FIXEDETHADDR
+
 const struct uip_eth_addr uip_ethaddr = {{UIP_ETHADDR0,
 					  UIP_ETHADDR1,
 					  UIP_ETHADDR2,
@@ -385,7 +386,7 @@ uip_init(void)
     uip_conns[c].tcpstateflags = UIP_CLOSED;
   }
 #if UIP_ACTIVE_OPEN
-  lastport = 10024;
+  lastport = 1024;
 #endif /* UIP_ACTIVE_OPEN */
 
 #if UIP_UDP
@@ -1809,8 +1810,6 @@ uip_process(u8_t flag)
   BUF->seqno[2] = uip_connr->snd_nxt[2];
   BUF->seqno[3] = uip_connr->snd_nxt[3];
 
-  BUF->proto = UIP_PROTO_TCP;
-  
   BUF->srcport  = uip_connr->lport;
   BUF->destport = uip_connr->rport;
 
@@ -1827,6 +1826,8 @@ uip_process(u8_t flag)
   }
 
  tcp_send_noconn:
+  BUF->proto = UIP_PROTO_TCP;
+
   BUF->ttl = UIP_TTL;
 #if UIP_CONF_IPV6
   /* For IPv6, the IP length field does not include the IPv6 IP header
@@ -1843,7 +1844,7 @@ uip_process(u8_t flag)
   /* Calculate TCP checksum. */
   BUF->tcpchksum = 0;
   BUF->tcpchksum = ~(uip_tcpchksum());
-
+  
  ip_send_nolen:
 
 #if UIP_CONF_IPV6
@@ -1887,12 +1888,12 @@ htons(u16_t val)
 void
 uip_send(const void *data, int len)
 {
-
-  uip_slen = len;
   if(len > 0) {
+    uip_slen = len;
     if(data != uip_sappdata) {
       memcpy(uip_sappdata, (data), uip_slen);
     }
   }
 }
 /** @} */
+

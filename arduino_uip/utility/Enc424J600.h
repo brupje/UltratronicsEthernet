@@ -463,7 +463,7 @@
 #define TXSTART_2			0x0A00
 #define TXSTOP_INIT			0x1339
 #define RXSTART_INIT   		0x1340	
-#define RXSTOP_INIT			0x5FFE
+#define RXSTOP_INIT			0x5FFF
 //
 // max frame length which the conroller will accept:
 //#define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)

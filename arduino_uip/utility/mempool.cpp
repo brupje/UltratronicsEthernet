@@ -19,7 +19,7 @@
 
 #include "mempool.h"
 #include <string.h>
-
+#include "Arduino.h"
 #define POOLOFFSET 1
 
 struct memblock MemoryPool::blocks[MEMPOOL_NUM_MEMBLOCKS+1];
@@ -141,6 +141,7 @@ MemoryPool::freeBlock(memhandle handle)
       if (next == NOBLOCK)
         return;
       b = &blocks[next];
+SerialUSB.println("freed mem");
     }
   while (true);
 }

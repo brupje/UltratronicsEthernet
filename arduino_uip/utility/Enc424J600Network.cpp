@@ -239,6 +239,8 @@ void Enc424J600Network::init(uint8_t* macaddr)
 		//8.3 reception
 		nextPacketPtr = RXSTART_INIT;
 		writeControlRegister16(ERXSTL, RXSTART_INIT);
+
+		
 		writeControlRegister16(ERXTAILL, RXSTOP_INIT);
 			
  		// USER buffer : EUDAST Pointer at a higher memory address relative to the end address.
@@ -278,7 +280,7 @@ void Enc424J600Network::init(uint8_t* macaddr)
 		// Unicast collection filter => enabled
 		// Not me unicast filter => disabled
 		// Multicast collection filter 
-		writeControlRegister(ERXFCONL,ERXFCON_CRCEN|ERXFCON_MCEN|ERXFCON_RUNTEN|ERXFCON_BCEN|ERXFCON_UCEN);//ERXFCON_CRCEN|ERXFCON_RUNTEN|ERXFCON_UCEN);
+		writeControlRegister(ERXFCONL,ERXFCON_CRCEN|ERXFCON_RUNTEN|ERXFCON_BCEN|ERXFCON_UCEN);//ERXFCON_CRCEN|ERXFCON_RUNTEN|ERXFCON_UCEN);
 		// brodcast collection filter => enabled
 		// Hash table collection filter.. c
 		// Magic packet => disabled TODO
@@ -387,6 +389,7 @@ Enc424J600Network::receivePacket()
   //SerialUSB.println(readControlRegister(ESTATL));
 
   if( (readControlRegister(EIRL) & EIR_PKTIF) ){
+SerialUSB.println("Hop BAM packet!");
       uint16_t readPtr = nextPacketPtr+8 > RXSTOP_INIT ? nextPacketPtr+8-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+8 ;
       // Set the read pointer to the start of the received packet
      // writeControlRegister16(ENC624J600_WRITE_ERXRDPT, nextPacketPtr);
@@ -426,12 +429,22 @@ Enc424J600Network::receivePacket()
       // check CRC and symbol errors (see datasheet page 44, table 7-3):
       // The ERXFCON.CRCEN is set by default. Normally we should not
       // need to check this.
-        setERXRDPT();
-        receivePkt.begin = readPtr;
-          receivePkt.size = len;
-          
-          enc_SBI(ENC624J600_SETPKTDEC);
-          return UIP_RECEIVEBUFFERHANDLE;
+		setERXRDPT();
+
+		writeControlRegister16(ERXTAILL, readPtr-1);
+		enc_SBI(ENC624J600_SETPKTDEC);
+
+		if (len > 100) {
+			SerialUSB.println("PAcket discarded!");
+
+return (NOBLOCK);
+		}
+				receivePkt.begin = readPtr;
+			receivePkt.size = len;	
+
+
+
+		return UIP_RECEIVEBUFFERHANDLE;
    // Move the RX read pointer to the start of the next received packet
       // This frees the memory we just read out
       
@@ -442,6 +455,7 @@ Enc424J600Network::receivePacket()
 void
 Enc424J600Network::setERXRDPT()
 {
+
   writePointer(ENC624J600_WRITE_ERXRDPT, nextPacketPtr == RXSTART_INIT ? RXSTOP_INIT : nextPacketPtr-1);
 }
 
@@ -458,14 +472,14 @@ void
 Enc424J600Network::sendPacket(memhandle handle)
 {
   memblock *packet = &blocks[handle];
-  uint16_t start = packet->begin-1;
-  uint16_t end = start + packet->size;
+  uint16_t start = packet->begin;
+  uint16_t end = start + packet->size-1;
 
   // backup data at control-byte position
-  uint8_t data = readByteTX(start);
+  uint8_t data = readByteTX(start-1);
   // write control-byte (if not 0 anyway)
   if (data)
-    writeByte(start, 0);
+    writeByte(start-1, 0);
 
 #ifdef ENC28J60DEBUG
   SerialUSB.print("sendPacket(");
@@ -488,8 +502,8 @@ Enc424J600Network::sendPacket(memhandle handle)
   // Set the TXND pointer to correspond to the packet size given
   //writeControlRegister16(ETXLENL, packet->size);
   
-    writeControlRegister(ETXSTL,(start+1)&0x00FF);
-    writeControlRegister(ETXSTH,(start+1)>>8);
+    writeControlRegister(ETXSTL,(start)&0x00FF);
+    writeControlRegister(ETXSTH,(start)>>8);
     // Set the TXND pointer to correspond to the packet size given
     writeControlRegister(ETXLENL, (packet->size)&0x00FF);
     writeControlRegister(ETXLENH, (packet->size)>>8);
@@ -507,9 +521,15 @@ Enc424J600Network::sendPacket(memhandle handle)
       enc_writeOp(ENC624J600_BIT_FIELD_CLEAR, ECON1, ECON1_TXRTS);
     }*/
 
+
+
   //restore data on control-byte position
   if (data)
-    writeByte(start, data);
+    writeByte(start-1, data);
+
+	#ifdef ENC28J60DEBUG
+SerialUSB.println("Sendpacket Done");
+#endif
 }
 
 uint16_t
@@ -612,12 +632,12 @@ writePointer(ENC624J600_WRITE_EGPWRPT, addr,false);
 }
 
 void
-Enc424J600Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle src_pkt, memaddress src_pos, uint16_t len)
+Enc424J600Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle src_pkt, memaddress src_pos, uint16_t len, uint8_t buffertype)
 {
   memblock *dest = &blocks[dest_pkt];
   memblock *src = src_pkt == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[src_pkt];
   memaddress start = src_pkt == UIP_RECEIVEBUFFERHANDLE && src->begin + src_pos > RXSTOP_INIT ? src->begin + src_pos-RXSTOP_INIT+RXSTART_INIT : src->begin + src_pos;
-  mempool_block_move_callback(dest->begin+dest_pos,start,len);
+  mempool_block_move(dest->begin+dest_pos,start,len,buffertype==0? RXSTART_INIT: TXSTART_INIT,buffertype==0? RXSTOP_INIT: TXSTOP_INIT);
   // Move the RX read pointer to the start of the next received packet
   // This frees the memory we just read out
   setERXRDPT();
@@ -626,13 +646,13 @@ Enc424J600Network::copyPacket(memhandle dest_pkt, memaddress dest_pos, memhandle
 
 
 void
-Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddress len)
+Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddress len, uint16_t bufstart, uint16_t bufend)
 {
 //void
 //Enc424J600Network::memblock_mv_cb(uint16_t dest, uint16_t src, uint16_t len)
 //{
   //as ENC28J60 DMA is unable to copy single bytes:
- /*SerialUSB.print("block copy action, src: 0x");
+ SerialUSB.print("block copy action, src: 0x");
     SerialUSB.print(src, HEX);
     SerialUSB.print(" dest: 0x");
     SerialUSB.print(dest, HEX);
@@ -677,6 +697,9 @@ Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddres
        prevent a never ending DMA operation which
        would overwrite the entire 8-Kbyte buffer.
        */
+
+		writeControlRegister16(EUDASTL, bufstart);
+ 		writeControlRegister16(EUDANDL, bufend);
       Enc424J600Network::writeControlRegister16(EDMASTL, src);
       Enc424J600Network::writeControlRegister16(EDMADSTL, dest);
 
@@ -718,12 +741,15 @@ Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddres
       
       o=readControlRegister(ECON1L);
       }      
+
+		writeControlRegister16(EUDASTL, 0x5FFF);
+ 		writeControlRegister16(EUDANDL, 0x5FFF);
      
     }
 }
 
 void mempool_block_move_callback(memaddress dest, memaddress src, memaddress len) {
-  Enc424J600Network::mempool_block_move(dest,src,len);
+  Enc424J600Network::mempool_block_move(dest,src,len,0,0);
 }
 
 void

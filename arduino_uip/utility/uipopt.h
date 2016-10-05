@@ -124,7 +124,7 @@
  *
  * \hideinitializer
  */
-#define UIP_FIXEDETHADDR 0
+#define UIP_FIXEDETHADDR 1
 
 /** @} */
 /*------------------------------------------------------------------------------*/

@@ -1,10 +1,11 @@
 # UltratronicsEthernet
 
-This is a library for Arduino adding support for EN424J600 chip.
+This is a library for Arduino adding support for ENC424J600 chip.
 
 # Releases
 
 2016/05/30: Initial release (alpha). Not considered production ready, but the TCP server and client work.
+2016/10/05: Update for stability. Should work good enough, included a flood test program. 
 
 # Installation
 

@@ -330,7 +330,7 @@ uipudp_appcall(void) {
               if (data->packet_next != NOBLOCK)
                 {
                   //discard Linklevel and IP and udp-header and any trailing bytes:
-                  Enc424J600Network::copyPacket(data->packet_next,0,UIPEthernetClass::in_packet,UIP_UDP_PHYH_LEN,Enc424J600Network::blockSize(data->packet_next));
+                  Enc424J600Network::copyPacket(data->packet_next,0,UIPEthernetClass::in_packet,UIP_UDP_PHYH_LEN,Enc424J600Network::blockSize(data->packet_next),0);
     #ifdef UIPETHERNET_DEBUG_UDP
                   Serial.print(F("udp, uip_newdata received packet: "));
                   Serial.print(data->packet_next);
@@ -357,7 +357,7 @@ uipudp_appcall(void) {
 }
 
 void
-UIPUDP::_send(uip_udp_userdata_t *data) {
+UIPUDP::_send(uip_udp_userdata_t *data) {Serial.println("UDP send");
   uip_arp_out(); //add arp
   if (uip_len == UIP_ARPHDRSIZE)
     {
@@ -377,7 +377,7 @@ UIPUDP::_send(uip_udp_userdata_t *data) {
       Serial.print(F("udp, uip_packet to send: "));
       Serial.println(UIPEthernetClass::uip_packet);
 #endif
-    }
+    }Serial.println("UDP send almost done..");
   UIPEthernetClass::network_send();
 }
 #endif

@@ -35,7 +35,7 @@
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
 
-//#define ENC28J60DEBUG
+#define ENC28J60DEBUG
 
 /*
  * Empfangen von ip-header, arp etc...
@@ -64,7 +64,7 @@ private:
   static void writeBitField(uint8_t address, uint8_t data); // select bank and write control register bit
   static void writePointer(uint8_t instruction, uint16_t address, bool keepEnabled = false); // select bank and write 2 bytes to a pointer
   
-  static void mempool_block_move(memaddress dest, memaddress src, memaddress len);
+  static void mempool_block_move(memaddress dest, memaddress src, memaddress len, uint16_t bufstart, uint16_t bufend);
   
   
 
@@ -101,7 +101,7 @@ public:
   static void sendPacket(memhandle handle);
   static uint16_t readPacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len);
   static uint16_t writePacket(memhandle handle, memaddress position, uint8_t* buffer, uint16_t len);
-  static void copyPacket(memhandle dest, memaddress dest_pos, memhandle src, memaddress src_pos, uint16_t len);
+  static void copyPacket(memhandle dest, memaddress dest_pos, memhandle src, memaddress src_pos, uint16_t len, uint8_t buffertype);
   static uint16_t chksum(uint16_t sum, memhandle handle, memaddress pos, uint16_t len);
 };
 

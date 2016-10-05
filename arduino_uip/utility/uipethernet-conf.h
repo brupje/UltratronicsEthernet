@@ -26,4 +26,11 @@
  * set to -1 to disable fast polling and rely on periodic only (saves 100 bytes flash) */
 #define UIP_CLIENT_TIMER         10
 
+#define UIP_ETHADDR0 0x00
+#define UIP_ETHADDR1 0x01
+#define UIP_ETHADDR2 0x02
+#define UIP_ETHADDR3 0x03
+#define UIP_ETHADDR4 0x04
+#define UIP_ETHADDR5 0x05
+
 #endif

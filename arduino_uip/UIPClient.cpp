@@ -245,6 +245,8 @@ UIPClient::available()
 int
 UIPClient::_available(uip_userdata_t *u)
 {
+
+
   int len = 0;
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
@@ -368,7 +370,7 @@ uipclient_appcall(void)
                       u->packets_in[i] = Enc424J600Network::allocBlock(uip_len);
                       if (u->packets_in[i] != NOBLOCK)
                         {
-                          Enc424J600Network::copyPacket(u->packets_in[i],0,UIPEthernetClass::in_packet,((uint8_t*)uip_appdata)-uip_buf,uip_len);
+                          Enc424J600Network::copyPacket(u->packets_in[i],0,UIPEthernetClass::in_packet,((uint8_t*)uip_appdata)-uip_buf,uip_len,0);
                           if (i == UIP_SOCKET_NUMPACKETS-1)
                             uip_stop();
                           goto finish_newdata;
@@ -441,7 +443,7 @@ finish_newdata:
                   UIPEthernetClass::uip_packet = Enc424J600Network::allocBlock(UIPEthernetClass::uip_hdrlen+send_len);
                   if (UIPEthernetClass::uip_packet != NOBLOCK)
                     {
-                      Enc424J600Network::copyPacket(UIPEthernetClass::uip_packet,UIPEthernetClass::uip_hdrlen,u->packets_out[0],0,send_len);
+                      Enc424J600Network::copyPacket(UIPEthernetClass::uip_packet,UIPEthernetClass::uip_hdrlen,u->packets_out[0],0,send_len,1);
                       UIPEthernetClass::packetstate |= UIPETHERNET_SENDPACKET;
                     }
                 }

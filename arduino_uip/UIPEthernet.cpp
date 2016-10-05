@@ -165,6 +165,7 @@ IPAddress UIPEthernetClass::dnsServerIP()
 void
 UIPEthernetClass::tick()
 {
+
   if (in_packet == NOBLOCK)
     {
       in_packet = Enc424J600Network::receivePacket();
@@ -182,7 +183,7 @@ UIPEthernetClass::tick()
       uip_len = Enc424J600Network::blockSize(in_packet);
       if (uip_len > 0)
         {
-          Enc424J600Network::readPacket(in_packet,0,(uint8_t*)uip_buf,UIP_BUFSIZE);
+          Enc424J600Network::readPacket(in_packet,0,(uint8_t*)uip_buf,uip_len);//UIP_BUFSIZE);
           if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_IP))
             {
               uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
@@ -259,6 +260,7 @@ UIPEthernetClass::tick()
         {
           uip_arp_out();
           network_send();
+SerialUSB.println("Send done");
         }
     }
 #if UIP_CLIENT_TIMER >= 0
@@ -267,9 +269,10 @@ UIPEthernetClass::tick()
       periodic_timer = now + UIP_PERIODIC_TIMER;
 #endif
 #if UIP_UDP
+SerialUSB.println("Doing uDP stuff");
       for (int i = 0; i < UIP_UDP_CONNS; i++)
         {
-          uip_udp_periodic(i);
+          uip_udp_periodic(i);SerialUSB.println("Periodic stuff");
           // If the above function invocation resulted in data that
           // should be sent out on the Enc424J600Network, the global variable
           // uip_len is set to a value > 0. */
@@ -280,6 +283,7 @@ UIPEthernetClass::tick()
         }
 #endif /* UIP_UDP */
     }
+
 }
 
 boolean UIPEthernetClass::network_send()
