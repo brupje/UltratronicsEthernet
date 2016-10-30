@@ -141,7 +141,6 @@ MemoryPool::freeBlock(memhandle handle)
       if (next == NOBLOCK)
         return;
       b = &blocks[next];
-SerialUSB.println("freed mem");
     }
   while (true);
 }

@@ -389,7 +389,7 @@ Enc424J600Network::receivePacket()
   //SerialUSB.println(readControlRegister(ESTATL));
 
   if( (readControlRegister(EIRL) & EIR_PKTIF) ){
-SerialUSB.println("Hop BAM packet!");
+
       uint16_t readPtr = nextPacketPtr+8 > RXSTOP_INIT ? nextPacketPtr+8-RXSTOP_INIT+RXSTART_INIT : nextPacketPtr+8 ;
       // Set the read pointer to the start of the received packet
      // writeControlRegister16(ENC624J600_WRITE_ERXRDPT, nextPacketPtr);
@@ -434,10 +434,10 @@ SerialUSB.println("Hop BAM packet!");
 		writeControlRegister16(ERXTAILL, readPtr-1);
 		enc_SBI(ENC624J600_SETPKTDEC);
 
-		if (len > 100) {
-			SerialUSB.println("PAcket discarded!");
+		if (len > 200) {
+			SerialUSB.println("Packet discarded!");
 
-return (NOBLOCK);
+			return (NOBLOCK);
 		}
 				receivePkt.begin = readPtr;
 			receivePkt.size = len;	
@@ -652,13 +652,13 @@ Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddres
 //Enc424J600Network::memblock_mv_cb(uint16_t dest, uint16_t src, uint16_t len)
 //{
   //as ENC28J60 DMA is unable to copy single bytes:
- SerialUSB.print("block copy action, src: 0x");
+/* SerialUSB.print("block copy action, src: 0x");
     SerialUSB.print(src, HEX);
     SerialUSB.print(" dest: 0x");
     SerialUSB.print(dest, HEX);
     SerialUSB.print(" len: 0x");
     SerialUSB.println(len, HEX);
- 
+ */
  /* for (int i =0; i<len-1; i++) {
   Enc424J600Network::writeByte(dest+i-1,Enc424J600Network::readByte(src+i+1));
   }*/

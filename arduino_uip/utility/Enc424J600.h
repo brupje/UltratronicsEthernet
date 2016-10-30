@@ -467,6 +467,6 @@
 //
 // max frame length which the conroller will accept:
 //#define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
-#define MAX_FRAMELEN     600
+#define MAX_FRAMELEN     1500
 
 #endif

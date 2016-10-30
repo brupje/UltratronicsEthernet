@@ -260,7 +260,6 @@ UIPEthernetClass::tick()
         {
           uip_arp_out();
           network_send();
-SerialUSB.println("Send done");
         }
     }
 #if UIP_CLIENT_TIMER >= 0
@@ -269,10 +268,10 @@ SerialUSB.println("Send done");
       periodic_timer = now + UIP_PERIODIC_TIMER;
 #endif
 #if UIP_UDP
-SerialUSB.println("Doing uDP stuff");
+
       for (int i = 0; i < UIP_UDP_CONNS; i++)
         {
-          uip_udp_periodic(i);SerialUSB.println("Periodic stuff");
+          uip_udp_periodic(i);
           // If the above function invocation resulted in data that
           // should be sent out on the Enc424J600Network, the global variable
           // uip_len is set to a value > 0. */
