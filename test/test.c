@@ -1,5 +1,5 @@
 /*
-** client.c -- a stream socket client demo
+** test.c - will repeatedly send data to a server
 */
 
 #include <stdio.h>
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     char s[INET6_ADDRSTRLEN];
 
     if (argc != 2) {
-        fprintf(stderr,"usage: client hostname\n");
+        fprintf(stderr,"usage: <ip address/hostname>\n");
         exit(1);
     }
 
@@ -79,19 +79,19 @@ int main(int argc, char *argv[])
     freeaddrinfo(servinfo); // all done with this structure
 
 	int num =0;
-	while (1){ sleep(0.1);
+	while (1){ sleep(1);
 		num++;
 		char out[20];
-out[14]=0;
-out[15]=0;
-out[16]=0;
-out[17]=0;
-out[18]=0;
-out[19]=0;
+    out[14]=0;
+    out[15]=0;
+    out[16]=0;
+    out[17]=0;
+    out[18]=0;
+    out[19]=0;
 
-		sprintf(out, "Hello world %d!\r",num);
+		sprintf(out, "Hello world %d!\n",num);
 		
-	send(sockfd, out, 20, 0);
+	  send(sockfd, out, 20, 0);
 
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
         perror("recv");

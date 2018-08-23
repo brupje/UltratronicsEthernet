@@ -35,7 +35,8 @@
 
 #define UIP_RECEIVEBUFFERHANDLE 0xff
 
-//#define ENC28J60DEBUG
+//#define ENC28J60DEBUG 1
+//#define DEBUGSERIAL Serial
 
 /*
  * Empfangen von ip-header, arp etc...

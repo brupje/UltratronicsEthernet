@@ -4,12 +4,33 @@ This is a library for Arduino adding support for ENC424J600 chip.
 
 # Releases
 
-2016/05/30: Initial release (alpha). Not considered production ready, but the TCP server and client work.
-2016/10/05: Update for stability. Should work good enough, included a flood test program. 
+2016/05/30: Initial release (alpha). Not considered production ready, but the TCP server and client work.<br/>
+2016/10/05: Update for stability. Should work good enough, included a flood test program. <br/>
+2018/08/26: Changes to support latest Arduino. Increased default buffer size to handle larger frames.<br/>
+
 
 # Installation
 
-Add the library to Arduino/libraries folder. Check https://www.arduino.cc/en/Reference/Libraries for more information
+Download the latest release from github https://github.com/brupje/UltratronicsEthernet. In the Arduino menu, find Sketch -> include Library -> Add .ZIP Library and select the downloaded file.
+
+# Testing
+
+To test the board, you can set-up a test. Open up the TcpFloodtest example in Arduino and change the line IPAddress myIP(192,168,0,1); into the desired IP address. Download the source code from Github https://github.com/brupje/UltratronicsEthernet. Compile the test executable in the source folder gcc ./UltratronicsEthernet/test/test.c -o test. Run the test code using:<br/><br/>
+
+./test <ip address>
+
+# Debugging
+
+In UIPEthernet.h uncomment:<br/>
+//#define UIPETHERNET_DEBUG<br/>
+//#define UIPETHERNET_DEBUG_CHKSUM<br/>
+//#define UIPETHERNET_DEBUG_UDP<br/>
+//#define UIPETHERNET_DEBUG_CLIENT<br/><br/>
+
+In Enc424J600Network.h uncomment:<br/>
+//#define ENC28J60DEBUG 1<br/>
+//#define DEBUGSERIAL Serial<br/>
+Set DEBUGSERIAL to the appropiate Serial (or SerialUSB)<br/>
 
 # Copyright
 

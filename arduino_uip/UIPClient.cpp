@@ -65,10 +65,10 @@ UIPClient::connect(IPAddress ip, uint16_t port)
             {
               data = (uip_userdata_t*) conn->appstate;
 #ifdef UIPETHERNET_DEBUG_CLIENT
-              SerialUSB.print(F("connected, state: "));
-              SerialUSB.print(data->state);
-              SerialUSB.print(F(", first packet in: "));
-              SerialUSB.println(data->packets_in[0]);
+              DEBUGSERIAL.print(F("connected, state: "));
+              DEBUGSERIAL.print(data->state);
+              DEBUGSERIAL.print(F(", first packet in: "));
+              DEBUGSERIAL.println(data->packets_in[0]);
 #endif
               return 1;
             }
@@ -108,7 +108,7 @@ UIPClient::stop()
   if (data && data->state)
     {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-      SerialUSB.println(F("before stop(), with data"));
+      DEBUGSERIAL.println(F("before stop(), with data"));
       _dumpAllData();
 #endif
       _flushBlocks(&data->packets_in[0]);
@@ -121,14 +121,14 @@ UIPClient::stop()
           data->state |= UIP_CLIENT_CLOSE;
         }
 #ifdef UIPETHERNET_DEBUG_CLIENT
-      SerialUSB.println(F("after stop()"));
+      DEBUGSERIAL.println(F("after stop()"));
       _dumpAllData();
 #endif
     }
 #ifdef UIPETHERNET_DEBUG_CLIENT
   else
     {
-      SerialUSB.println(F("stop(), data: NULL"));
+      DEBUGSERIAL.println(F("stop(), data: NULL"));
     }
 #endif
   data = NULL;
@@ -195,17 +195,17 @@ newpacket:
           u->out_pos = 0;
         }
 #ifdef UIPETHERNET_DEBUG_CLIENT
-      SerialUSB.print(F("UIPClient.write: writePacket(")); 
-      SerialUSB.print(u->packets_out[p]);
-      SerialUSB.print(F(") pos: "));
-      SerialUSB.print(u->out_pos);
-      SerialUSB.print(F(", buf["));
-      SerialUSB.print(size-remain);
-      SerialUSB.print(F("-"));
-      SerialUSB.print(remain);
-      SerialUSB.print(F("]: '"));
-      SerialUSB.write((uint8_t*)buf+size-remain,remain);
-      SerialUSB.println(F("'"));
+      DEBUGSERIAL.print(F("UIPClient.write: writePacket(")); 
+      DEBUGSERIAL.print(u->packets_out[p]);
+      DEBUGSERIAL.print(F(") pos: "));
+      DEBUGSERIAL.print(u->out_pos);
+      DEBUGSERIAL.print(F(", buf["));
+      DEBUGSERIAL.print(size-remain);
+      DEBUGSERIAL.print(F("-"));
+      DEBUGSERIAL.print(remain);
+      DEBUGSERIAL.print(F("]: '"));
+      DEBUGSERIAL.write((uint8_t*)buf+size-remain,remain);
+      DEBUGSERIAL.println(F("'"));
 #endif
       written = Enc424J600Network::writePacket(u->packets_out[p],u->out_pos,(uint8_t*)buf+size-remain,remain);
       remain -= written;
@@ -336,7 +336,7 @@ uipclient_appcall(void)
   if (!u && uip_connected())
     {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-      SerialUSB.println(F("UIPClient uip_connected"));
+      DEBUGSERIAL.println(F("UIPClient uip_connected"));
       UIPClient::_dumpAllData();
 #endif
       u = (uip_userdata_t*) UIPClient::_allocateData();
@@ -344,13 +344,13 @@ uipclient_appcall(void)
         {
           uip_conn->appstate = u;
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.print(F("UIPClient allocated state: "));
-          SerialUSB.println(u->state,BIN);
+          DEBUGSERIAL.print(F("UIPClient allocated state: "));
+          DEBUGSERIAL.println(u->state,BIN);
 #endif
         }
 #ifdef UIPETHERNET_DEBUG_CLIENT
       else
-        SerialUSB.println(F("UIPClient allocation failed"));
+        DEBUGSERIAL.println(F("UIPClient allocation failed"));
 #endif
     }
   if (u)
@@ -358,8 +358,8 @@ uipclient_appcall(void)
       if (uip_newdata())
         {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.print(F("UIPClient uip_newdata, uip_len:"));
-          SerialUSB.println(uip_len);
+          DEBUGSERIAL.print(F("UIPClient uip_newdata, uip_len:"));
+          DEBUGSERIAL.println(uip_len);
 #endif
           if (uip_len && !(u->state & (UIP_CLIENT_CLOSE | UIP_CLIENT_REMOTECLOSED)))
             {
@@ -391,7 +391,7 @@ finish_newdata:
       if (uip_closed() || uip_timedout())
         {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.println(F("UIPClient uip_closed"));
+          DEBUGSERIAL.println(F("UIPClient uip_closed"));
           UIPClient::_dumpAllData();
 #endif
           // drop outgoing packets not sent yet:
@@ -405,7 +405,7 @@ finish_newdata:
             u->state = 0;
           // disassociate appdata.
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.println(F("after UIPClient uip_closed"));
+          DEBUGSERIAL.println(F("after UIPClient uip_closed"));
           UIPClient::_dumpAllData();
 #endif
           uip_conn->appstate = NULL;
@@ -414,14 +414,14 @@ finish_newdata:
       if (uip_acked())
         {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.println(F("UIPClient uip_acked"));
+          DEBUGSERIAL.println(F("UIPClient uip_acked"));
 #endif
           UIPClient::_eatBlock(&u->packets_out[0]);
         }
       if (uip_poll() || uip_rexmit())
         {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.println(F("UIPClient uip_poll"));
+          DEBUGSERIAL.println(F("UIPClient uip_poll"));
 #endif
           if (u->packets_out[0] != NOBLOCK)
             {
@@ -454,7 +454,7 @@ finish_newdata:
       if (u->state & UIP_CLIENT_CLOSE)
         {
 #ifdef UIPETHERNET_DEBUG_CLIENT
-          SerialUSB.println(F("UIPClient state UIP_CLIENT_CLOSE"));
+          DEBUGSERIAL.println(F("UIPClient state UIP_CLIENT_CLOSE"));
           UIPClient::_dumpAllData();
 #endif
           if (u->packets_out[0] == NOBLOCK)
@@ -463,7 +463,7 @@ finish_newdata:
               uip_conn->appstate = NULL;
               uip_close();
 #ifdef UIPETHERNET_DEBUG_CLIENT
-              SerialUSB.println(F("no blocks out -> free userdata"));
+              DEBUGSERIAL.println(F("no blocks out -> free userdata"));
               UIPClient::_dumpAllData();
 #endif
             }
@@ -471,7 +471,7 @@ finish_newdata:
             {
               uip_stop();
 #ifdef UIPETHERNET_DEBUG_CLIENT
-              SerialUSB.println(F("blocks outstanding transfer -> uip_stop()"));
+              DEBUGSERIAL.println(F("blocks outstanding transfer -> uip_stop()"));
 #endif
             }
         }
@@ -515,15 +515,15 @@ UIPClient::_eatBlock(memhandle* block)
 {
 #ifdef UIPETHERNET_DEBUG_CLIENT
   memhandle* start = block;
-  SerialUSB.print(F("eatblock("));
-  SerialUSB.print(*block);
-  SerialUSB.print(F("): "));
+  DEBUGSERIAL.print(F("eatblock("));
+  DEBUGSERIAL.print(*block);
+  DEBUGSERIAL.print(F("): "));
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-      SerialUSB.print(start[i]);
-      SerialUSB.print(F(" "));
+      DEBUGSERIAL.print(start[i]);
+      DEBUGSERIAL.print(F(" "));
     }
-  SerialUSB.print(F("-> "));
+  DEBUGSERIAL.print(F("-> "));
 #endif
   Enc424J600Network::freeBlock(block[0]);
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS-1; i++)
@@ -534,10 +534,10 @@ UIPClient::_eatBlock(memhandle* block)
 #ifdef UIPETHERNET_DEBUG_CLIENT
   for (uint8_t i = 0; i < UIP_SOCKET_NUMPACKETS; i++)
     {
-      SerialUSB.print(start[i]);
-      SerialUSB.print(F(" "));
+      DEBUGSERIAL.print(start[i]);
+      DEBUGSERIAL.print(F(" "));
     }
-  SerialUSB.println();
+  DEBUGSERIAL.println();
 #endif
 }
 
@@ -556,33 +556,33 @@ void
 UIPClient::_dumpAllData() {
   for (uint8_t i=0; i < UIP_CONNS; i++)
     {
-      SerialUSB.print(F("UIPClient::all_data["));
-      SerialUSB.print(i);
-      SerialUSB.print(F("], state:"));
-      SerialUSB.println(all_data[i].state, BIN);
-      SerialUSB.print(F("packets_in: "));
+      DEBUGSERIAL.print(F("UIPClient::all_data["));
+      DEBUGSERIAL.print(i);
+      DEBUGSERIAL.print(F("], state:"));
+      DEBUGSERIAL.println(all_data[i].state, BIN);
+      DEBUGSERIAL.print(F("packets_in: "));
       for (uint8_t j=0; j < UIP_SOCKET_NUMPACKETS; j++)
         {
-          SerialUSB.print(all_data[i].packets_in[j]);
-          SerialUSB.print(F(" "));
+          DEBUGSERIAL.print(all_data[i].packets_in[j]);
+          DEBUGSERIAL.print(F(" "));
         }
-      SerialUSB.println();
+      DEBUGSERIAL.println();
       if (all_data[i].state & UIP_CLIENT_REMOTECLOSED)
         {
-          SerialUSB.print(F("state remote closed, local port: "));
-          SerialUSB.println(htons(((uip_userdata_closed_t *)(&all_data[i]))->lport));
+          DEBUGSERIAL.print(F("state remote closed, local port: "));
+          DEBUGSERIAL.println(htons(((uip_userdata_closed_t *)(&all_data[i]))->lport));
         }
       else
         {
-          SerialUSB.print(F("packets_out: "));
+          DEBUGSERIAL.print(F("packets_out: "));
           for (uint8_t j=0; j < UIP_SOCKET_NUMPACKETS; j++)
             {
-              SerialUSB.print(all_data[i].packets_out[j]);
-              SerialUSB.print(F(" "));
+              DEBUGSERIAL.print(all_data[i].packets_out[j]);
+              DEBUGSERIAL.print(F(" "));
             }
-          SerialUSB.println();
-          SerialUSB.print(F("out_pos: "));
-          SerialUSB.println(all_data[i].out_pos);
+          DEBUGSERIAL.println();
+          DEBUGSERIAL.print(F("out_pos: "));
+          DEBUGSERIAL.println(all_data[i].out_pos);
         }
     }
 }

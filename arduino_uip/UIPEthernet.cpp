@@ -167,18 +167,20 @@ UIPEthernetClass::tick()
 {
 
   if (in_packet == NOBLOCK)
-    {
-      in_packet = Enc424J600Network::receivePacket();
-#ifdef UIPETHERNET_DEBUG
-      if (in_packet != NOBLOCK)
-        {
-          SerialUSB.print(F("--------------\nreceivePacket: "));
-          SerialUSB.println(in_packet);
-        }
-#endif
-    }
+  {
+    in_packet = Enc424J600Network::receivePacket();
+
+  }
+  
   if (in_packet != NOBLOCK)
     {
+    
+    #ifdef UIPETHERNET_DEBUG
+
+          DEBUGSERIAL.print(F("--------------\nreceivePacket: "));
+          DEBUGSERIAL.println(in_packet);
+
+    #endif
       packetstate = UIPETHERNET_FREEPACKET;
       uip_len = Enc424J600Network::blockSize(in_packet);
       if (uip_len > 0)
@@ -188,8 +190,8 @@ UIPEthernetClass::tick()
             {
               uip_packet = in_packet; //required for upper_layer_checksum of in_packet!
 #ifdef UIPETHERNET_DEBUG
-              SerialUSB.print(F("readPacket type IP, uip_len: "));
-              SerialUSB.println(uip_len);
+              DEBUGSERIAL.print(F("readPacket type IP, uip_len: "));
+              DEBUGSERIAL.println(uip_len);
 #endif
               uip_arp_ipin();
               uip_input();
@@ -202,8 +204,8 @@ UIPEthernetClass::tick()
           else if (ETH_HDR ->type == HTONS(UIP_ETHTYPE_ARP))
             {
 #ifdef UIPETHERNET_DEBUG
-              SerialUSB.print(F("readPacket type ARP, uip_len: "));
-              SerialUSB.println(uip_len);
+              DEBUGSERIAL.print(F("readPacket type ARP, uip_len: "));
+              DEBUGSERIAL.println(uip_len);
 #endif
               uip_arp_arpin();
               if (uip_len > 0)
@@ -215,8 +217,8 @@ UIPEthernetClass::tick()
       if (in_packet != NOBLOCK && (packetstate & UIPETHERNET_FREEPACKET))
         {
 #ifdef UIPETHERNET_DEBUG
-          SerialUSB.print(F("freeing packet: "));
-          SerialUSB.println(in_packet);
+          DEBUGSERIAL.print(F("freeing packet: "));
+          DEBUGSERIAL.println(in_packet);
 #endif
           Enc424J600Network::freePacket();
           in_packet = NOBLOCK;
@@ -290,10 +292,10 @@ boolean UIPEthernetClass::network_send()
   if (packetstate & UIPETHERNET_SENDPACKET)
     {
 #ifdef UIPETHERNET_DEBUG
-      SerialUSB.print(F("Enc424J600Network_send uip_packet: "));
-      SerialUSB.print(uip_packet);
-      SerialUSB.print(F(", hdrlen: "));
-      SerialUSB.println(uip_hdrlen);
+      DEBUGSERIAL.print(F("Enc424J600Network_send uip_packet: "));
+      DEBUGSERIAL.print(uip_packet);
+      DEBUGSERIAL.print(F(", hdrlen: "));
+      DEBUGSERIAL.println(uip_hdrlen);
 #endif
       Enc424J600Network::writePacket(uip_packet,0,uip_buf,uip_hdrlen);
       packetstate &= ~ UIPETHERNET_SENDPACKET;
@@ -303,10 +305,10 @@ boolean UIPEthernetClass::network_send()
   if (uip_packet != NOBLOCK)
     {
 #ifdef UIPETHERNET_DEBUG
-      SerialUSB.print(F("Enc424J600Network_send uip_buf (uip_len): "));
-      SerialUSB.print(uip_len);
-      SerialUSB.print(F(", packet: "));
-      SerialUSB.println(uip_packet);
+      DEBUGSERIAL.print(F("Enc424J600Network_send uip_buf (uip_len): "));
+      DEBUGSERIAL.print(uip_len);
+      DEBUGSERIAL.print(F(", packet: "));
+      DEBUGSERIAL.println(uip_packet);
 #endif
       Enc424J600Network::writePacket(uip_packet,0,uip_buf,uip_len);
       goto sendandfree;
@@ -438,12 +440,12 @@ uip_tcpchksum(void)
 #endif
   sum = UIPEthernetClass::chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN], upper_layer_memlen);
 #ifdef UIPETHERNET_DEBUG_CHKSUM
-  SerialUSB.print(F("chksum uip_buf["));
-  SerialUSB.print(UIP_IPH_LEN + UIP_LLH_LEN);
-  SerialUSB.print(F("-"));
-  SerialUSB.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen);
-  SerialUSB.print(F("]: "));
-  SerialUSB.println(htons(sum),HEX);
+  DEBUGSERIAL.print(F("chksum uip_buf["));
+  DEBUGSERIAL.print(UIP_IPH_LEN + UIP_LLH_LEN);
+  DEBUGSERIAL.print(F("-"));
+  DEBUGSERIAL.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen);
+  DEBUGSERIAL.print(F("]: "));
+  DEBUGSERIAL.println(htons(sum),HEX);
 #endif
   if (upper_layer_memlen < upper_layer_len)
     {
@@ -456,14 +458,14 @@ uip_tcpchksum(void)
  
       
 #ifdef UIPETHERNET_DEBUG_CHKSUM
-      SerialUSB.print(F("chksum uip_packet("));
-      SerialUSB.print(uip_packet);
-      SerialUSB.print(F(")["));
-      SerialUSB.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen);
-      SerialUSB.print(F("-"));
-      SerialUSB.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_len);
-      SerialUSB.print(F("]: "));
-      SerialUSB.println(~htons(sum),HEX);
+      DEBUGSERIAL.print(F("chksum uip_packet("));
+      DEBUGSERIAL.print(uip_packet);
+      DEBUGSERIAL.print(F(")["));
+      DEBUGSERIAL.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_memlen);
+      DEBUGSERIAL.print(F("-"));
+      DEBUGSERIAL.print(UIP_IPH_LEN + UIP_LLH_LEN + upper_layer_len);
+      DEBUGSERIAL.print(F("]: "));
+      DEBUGSERIAL.println(~htons(sum),HEX);
 #endif
 
 

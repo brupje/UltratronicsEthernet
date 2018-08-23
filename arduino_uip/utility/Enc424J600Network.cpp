@@ -201,7 +201,7 @@ void Enc424J600Network::init(uint8_t* macaddr)
   MemoryPool::init(); // 1 byte in between RX_STOP_INIT and pool to allow prepending of controlbyte
 
 #ifdef ENC28J60DEBUG
-  SerialUSB.println("ENC624J600Init");
+  DEBUGSERIAL.println("ENC624J600Init");
 #endif
   /* enable SPI */
 	pinMode(ENC28J60_CONTROL_CS, OUTPUT); 
@@ -347,11 +347,13 @@ void Enc424J600Network::init(uint8_t* macaddr)
 	}
 	else
 	{
-	  SerialUSB.println ("Error in initialization!");
+#ifdef ENC28J60DEBUG
+	  DEBUGSERIAL.println ("Error in initialization!");
+#endif
 		// Oops something went wrong
 	}
 #ifdef ENC28J60DEBUG
-	SerialUSB.println ("ENC624J600Init complete");
+	DEBUGSERIAL.println ("ENC624J600Init complete");
 #endif
 }
 
@@ -361,15 +363,15 @@ uint16_t Enc424J600Network::readPacket(memhandle handle, memaddress position, ui
   #ifdef ENC28J60DEBUG
   memblock *packet = handle == UIP_RECEIVEBUFFERHANDLE ? &receivePkt : &blocks[handle];
   memaddress start = handle == UIP_RECEIVEBUFFERHANDLE && packet->begin + position > RXSTOP_INIT ? packet->begin + position-RXSTOP_INIT+RXSTART_INIT : packet->begin + position;
-	SerialUSB.print ("readPacket (");
-	SerialUSB.print (handle);
-	SerialUSB.print (") [");
-	SerialUSB.print (start,HEX);
-	SerialUSB.print ("-");
-	SerialUSB.print (start+len,HEX);
-	SerialUSB.print ("] ");
-	SerialUSB.print (len);
-	SerialUSB.print (" bytes: ");
+	DEBUGSERIAL.print ("readPacket (");
+	DEBUGSERIAL.print (handle);
+	DEBUGSERIAL.print (") [");
+	DEBUGSERIAL.print (start,HEX);
+	DEBUGSERIAL.print ("-");
+	DEBUGSERIAL.print (start+len,HEX);
+	DEBUGSERIAL.print ("] ");
+	DEBUGSERIAL.print (len);
+	DEBUGSERIAL.print (" bytes: ");
 #endif
   len = setReadPtr(handle, position, len); 
   readBuffer(len, buffer);
@@ -386,7 +388,7 @@ Enc424J600Network::receivePacket()
   //if( !(readControlRegister(EIR) & EIR_PKTIF) ){
   // The above does not work. See Rev. B4 Silicon Errata point 6.
 
-  //SerialUSB.println(readControlRegister(ESTATL));
+  //DEBUGSERIAL.println(readControlRegister(ESTATL));
 
   if( (readControlRegister(EIRL) & EIR_PKTIF) ){
 
@@ -410,19 +412,19 @@ Enc424J600Network::receivePacket()
       CSPASSIVE;
       
 #ifdef ENC28J60DEBUG
-      SerialUSB.print("receivePacket [");
-      SerialUSB.print(readPtr,HEX);
-      SerialUSB.print("-");
-      SerialUSB.print((readPtr+len) % (RXSTOP_INIT+1),HEX);
-      SerialUSB.print("], next: ");
-      SerialUSB.print(nextPacketPtr,HEX);
-      SerialUSB.print(", stat: ");
-      SerialUSB.print(rxstat,HEX);
-      SerialUSB.print(", count: ");
-      SerialUSB.println(len);
-      //SerialUSB.print(readControlRegister(EPKTCNT));
-      //SerialUSB.print(" -> ");
-      //SerialUSB.println((rxstat & 0x80)!=0 ? "OK" : "failed");
+      DEBUGSERIAL.print("network::receivePacket [");
+      DEBUGSERIAL.print(readPtr,HEX);
+      DEBUGSERIAL.print("-");
+      DEBUGSERIAL.print((readPtr+len) % (RXSTOP_INIT+1),HEX);
+      DEBUGSERIAL.print("], next: ");
+      DEBUGSERIAL.print(nextPacketPtr,HEX);
+      DEBUGSERIAL.print(", stat: ");
+      DEBUGSERIAL.print(rxstat,HEX);
+      DEBUGSERIAL.print(", count: ");
+      DEBUGSERIAL.println(len);
+      //DEBUGSERIAL.print(readControlRegister(EPKTCNT));
+      //DEBUGSERIAL.print(" -> ");
+      //DEBUGSERIAL.println((rxstat & 0x80)!=0 ? "OK" : "failed");
 #endif
       // decrement the packet counter indicate we are done with this packet
       
@@ -435,8 +437,9 @@ Enc424J600Network::receivePacket()
 		enc_SBI(ENC624J600_SETPKTDEC);
 
 		if (len > 200) {
-			SerialUSB.println("Packet discarded!");
-
+#ifdef ENC28J60DEBUG
+			DEBUGSERIAL.println("Packet discarded!");
+#endif
 			return (NOBLOCK);
 		}
 				receivePkt.begin = readPtr;
@@ -482,19 +485,19 @@ Enc424J600Network::sendPacket(memhandle handle)
     writeByte(start-1, 0);
 
 #ifdef ENC28J60DEBUG
-  SerialUSB.print("sendPacket(");
-  SerialUSB.print(handle);
-  SerialUSB.print(") [");
-  SerialUSB.print(start+1,HEX);
-  SerialUSB.print("-");
-  SerialUSB.print(end+1,HEX);
-  SerialUSB.print("]: ");
+  DEBUGSERIAL.print("sendPacket(");
+  DEBUGSERIAL.print(handle);
+  DEBUGSERIAL.print(") [");
+  DEBUGSERIAL.print(start+1,HEX);
+  DEBUGSERIAL.print("-");
+  DEBUGSERIAL.print(end+1,HEX);
+  DEBUGSERIAL.print("]: ");
   for (uint16_t i=start; i<=end; i++)
     {
-      SerialUSB.print(readByteTX(i),HEX);
-      SerialUSB.print(" ");
+      DEBUGSERIAL.print(readByteTX(i),HEX);
+      DEBUGSERIAL.print(" ");
     }
-  SerialUSB.println();
+  DEBUGSERIAL.println();
 #endif
 
   // TX start
@@ -528,7 +531,7 @@ Enc424J600Network::sendPacket(memhandle handle)
     writeByte(start-1, data);
 
 	#ifdef ENC28J60DEBUG
-SerialUSB.println("Sendpacket Done");
+DEBUGSERIAL.println("Sendpacket Done");
 #endif
 }
 
@@ -554,22 +557,22 @@ Enc424J600Network::writePacket(memhandle handle, memaddress position, uint8_t* b
 {
 
 
-//SerialUSB.print("handle: ");
-//SerialUSB.print(handle);
+//DEBUGSERIAL.print("handle: ");
+//DEBUGSERIAL.print(handle);
 
   memblock *packet = &blocks[handle];
   uint16_t start = packet->begin + position;
-//SerialUSB.print(" start: 0x");
-//SerialUSB.print(start,HEX);
-//SerialUSB.print(" packetsize: ");
-//SerialUSB.print(packet->size);
+//DEBUGSERIAL.print(" start: 0x");
+//DEBUGSERIAL.print(start,HEX);
+//DEBUGSERIAL.print(" packetsize: ");
+//DEBUGSERIAL.print(packet->size);
 
 writePointer(ENC624J600_WRITE_EGPWRPT,start);
   if (len > packet->size - position)
     len = packet->size - position;
     
-//    SerialUSB.print(" len: ");
-//SerialUSB.println(len);
+//    DEBUGSERIAL.print(" len: ");
+//DEBUGSERIAL.println(len);
   writeBuffer(len, buffer);
   return len;
 }
@@ -652,12 +655,12 @@ Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddres
 //Enc424J600Network::memblock_mv_cb(uint16_t dest, uint16_t src, uint16_t len)
 //{
   //as ENC28J60 DMA is unable to copy single bytes:
-/* SerialUSB.print("block copy action, src: 0x");
-    SerialUSB.print(src, HEX);
-    SerialUSB.print(" dest: 0x");
-    SerialUSB.print(dest, HEX);
-    SerialUSB.print(" len: 0x");
-    SerialUSB.println(len, HEX);
+/* DEBUGSERIAL.print("block copy action, src: 0x");
+    DEBUGSERIAL.print(src, HEX);
+    DEBUGSERIAL.print(" dest: 0x");
+    DEBUGSERIAL.print(dest, HEX);
+    DEBUGSERIAL.print(" len: 0x");
+    DEBUGSERIAL.println(len, HEX);
  */
  /* for (int i =0; i<len-1; i++) {
   Enc424J600Network::writeByte(dest+i-1,Enc424J600Network::readByte(src+i+1));
@@ -706,23 +709,23 @@ Enc424J600Network::mempool_block_move(memaddress dest, memaddress src, memaddres
       //if ((src <= RXSTOP_INIT)&& (len > RXSTOP_INIT))len -= (RXSTOP_INIT-RXSTART_INIT);
       Enc424J600Network::writeControlRegister16(EDMALENL, len);
 
-     /*   SerialUSB.print("DMA start pointer should be: ");
-        SerialUSB.print(src);
-        SerialUSB.print(" and is: ");
+     /*   DEBUGSERIAL.print("DMA start pointer should be: ");
+        DEBUGSERIAL.print(src);
+        DEBUGSERIAL.print(" and is: ");
         
-        SerialUSB.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMASTH) <<8) | Enc424J600Network::readOp(ENC624J600_READ_CONTROL_REGISTER, EDMASTL)));
+        DEBUGSERIAL.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMASTH) <<8) | Enc424J600Network::readOp(ENC624J600_READ_CONTROL_REGISTER, EDMASTL)));
         
-        SerialUSB.print("DMA dest pointer should be: ");
-        SerialUSB.print(dest);
-        SerialUSB.print(" and is: ");
+        DEBUGSERIAL.print("DMA dest pointer should be: ");
+        DEBUGSERIAL.print(dest);
+        DEBUGSERIAL.print(" and is: ");
         
-        SerialUSB.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMADSTH) <<8) | Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMADSTL)));
+        DEBUGSERIAL.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMADSTH) <<8) | Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMADSTL)));
         
-                SerialUSB.print("DMA len pointer should be: ");
-        SerialUSB.print(len);
-        SerialUSB.print(" and is: ");
+                DEBUGSERIAL.print("DMA len pointer should be: ");
+        DEBUGSERIAL.print(len);
+        DEBUGSERIAL.print(" and is: ");
         
-        SerialUSB.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMALENH) <<8) | Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMALENL)));*/
+        DEBUGSERIAL.println(((Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMALENH) <<8) | Enc424J600Network::enc_readOp(ENC624J600_READ_CONTROL_REGISTER, EDMALENL)));*/
                
       /*
        2. If an interrupt at the end of the copy process is
@@ -769,8 +772,8 @@ Enc424J600Network::readBuffer(uint16_t len, uint8_t* data)
   // issue read command
   SPI.transfer(  ENC624J600_READ_ERXDATA);
   
-  #ifdef ENC28J60DEBUG
-    SerialUSB.print("Readbuffer: ");
+  #ifdef ENC28J60DEBUG fsfsd
+    DEBUGSERIAL.print("Readbuffer: ");
   #endif
   while(len)
   {
@@ -779,15 +782,15 @@ Enc424J600Network::readBuffer(uint16_t len, uint8_t* data)
 
     *data = SPI.transfer(0x00);
     #ifdef ENC28J60DEBUG
-    SerialUSB.print(" ");
-    SerialUSB.print(*data,HEX);
+    DEBUGSERIAL.print(" ");
+    DEBUGSERIAL.print(*data,HEX);
     #endif
     data++;
   }
   //*data='\0';
   CSPASSIVE;
   #ifdef ENC28J60DEBUG
-  SerialUSB.println(" ");
+  DEBUGSERIAL.println(" ");
   #endif
 }
 
@@ -797,15 +800,15 @@ Enc424J600Network::writeBuffer(uint16_t len, uint8_t* data)
   CSACTIVE;
   // issue write command
 	SPI.transfer(ENC624J600_WRITE_EGPDATA);
-  //SerialUSB.print("writeBuffer: ");
+  //DEBUGSERIAL.print("writeBuffer: ");
 	while(len--)
 	{
-    //SerialUSB.print(*data,HEX);
-    //SerialUSB.print(" ");
+    //DEBUGSERIAL.print(*data,HEX);
+    //DEBUGSERIAL.print(" ");
     SPI.transfer( *data);
     data++;
 	}
-  //SerialUSB.println("");   
+  //DEBUGSERIAL.println("");   
   CSPASSIVE;
 }
 
