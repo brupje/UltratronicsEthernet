@@ -17,7 +17,7 @@ Download the latest release from github https://github.com/brupje/UltratronicsEt
 
 To test the board, you can set-up a test. Open up the TcpFloodtest example in Arduino and change the line IPAddress myIP(192,168,0,1); into the desired IP address. Download the source code from Github https://github.com/brupje/UltratronicsEthernet. Compile the test executable in the source folder gcc ./UltratronicsEthernet/test/test.c -o test. Run the test code using:<br/><br/>
 
-./test <ip address>
+./test [ip address]
 
 # Debugging
 
@@ -31,6 +31,10 @@ In Enc424J600Network.h uncomment:<br/>
 //#define ENC28J60DEBUG 1<br/>
 //#define DEBUGSERIAL Serial<br/>
 Set DEBUGSERIAL to the appropiate Serial (or SerialUSB)<br/>
+
+# Changing the MAC address
+
+To change the MAC address from the default, you either need to change the UIP_ETHADDRx constants in uipethernet-conf.h and change the line uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05}; accordingly. Or in uipopt.h change #define UIP_FIXEDETHADDR 1 to #define UIP_FIXEDETHADDR 0, so you only have to edit the line uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};.
 
 # Copyright
 
